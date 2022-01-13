@@ -1,0 +1,9 @@
+{
+	"mongo": "mongodb://localhost:27017",
+	"hostname": "localhost:3000",
+	"email_service": "gmail",
+	"email_from": "timecapsule@gmail.com",
+	"email_user": "timecapsule@gmail.com",
+	"email_password": "yourpassword",
+	"email_subject": "Your Time Capsule is ready!"
+}

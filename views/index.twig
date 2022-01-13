@@ -1,0 +1,39 @@
+{% extends 'layout.twig' %}
+
+{% block head %}
+  <script type="text/javascript">
+    window.addEventListener('load', (event) => {
+      var durationDisplay = document.getElementById("duration");
+      document.getElementById("duration_slider").addEventListener('input', function updateDuration(event) {
+        durationDisplay.innerHTML = ["1 Month", "6 Months", "1 Year", "2 Years", "5 years"][event.target.value - 1];
+      });
+      
+    });
+  </script>
+  <link rel
+{% endblock %}
+
+{% block body %}
+  <h1>{{title}}</h1>
+  <form action="/notes" method="POST" id="form1">
+
+  <input type="text" name="email" placeholder="email" /><div class="help-icon tooltip">?
+    <span class="tooltiptext">
+      Your email will only be used to remind you to return once your time capsule has matured.
+    </span>
+  </div>
+
+  <br />
+  <p class="right-label top-label">
+    <a href="/notes/inspiration" target="_blank">What should I write about?</a>
+  </p>
+  <p class="top-label">message:</p>
+  <textarea name="text" rows="10" class="full-width" form="form1"></textarea>
+
+  <br />
+  <input id="duration_slider" name="duration" type="range" min="1" max="5" step="1" value="3" />
+  <p id="duration">1 Year</p>
+
+  <input id="submit" type="submit" />
+  </form>
+{% endblock %}
