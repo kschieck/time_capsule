@@ -6,6 +6,7 @@ const { ObjectId } = require('mongodb');
 var crypto = require("crypto");
 const { twig } = require("twig");
 const fs = require("fs");
+const { getDayStartTime, getCurrentTime } = require("../lib/time-helper.js");
 
 const email_regex = /(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])/;
 
@@ -33,14 +34,14 @@ router.get('/:id', connect, async function(req, res, next) {
   if (findResult.length > 0) {
 
     var note = findResult[0];
-    if (note.hasOwnProperty("send_date") && note.send_date > new Date()) {
+    if (note.hasOwnProperty("unlock_date") && note.unlock_date > getDayStartTime()) {
       var template = twig({
         data: fs.readFileSync('content/note-locked.twig', 'utf-8')
       });
       res.render('locked-note', {
         title: 'Time Capsule',
         message: "Your Time Capsule is Locked",
-        text: template.render({ send_date: note.send_date.toDateString() })
+        text: template.render({ unlock_date: note.unlock_date.toDateString() })
       });
       return;
     }
@@ -82,22 +83,22 @@ router.post('/', connect, async function(req, res, next) {
   }
 
   // Must match with client display
-  var send_date = new Date(); // today
+  var unlock_date = getDayStartTime();
   switch (duration) {
     case 1: // 1 month
-      send_date = new Date(send_date.setMonth(send_date.getMonth()+1));
+      unlock_date = new Date(unlock_date.setMonth(unlock_date.getMonth()+1));
       break;
     case 2: // 6 months
-      send_date = new Date(send_date.setMonth(send_date.getMonth()+6));
+      unlock_date = new Date(unlock_date.setMonth(unlock_date.getMonth()+6));
       break;
     case 3: // 1 year
-      send_date = new Date(send_date.setYear(send_date.getFullYear()+1));
+      unlock_date = new Date(unlock_date.setYear(unlock_date.getFullYear()+1));
       break;
     case 4: // 2 years
-      send_date = new Date(send_date.setYear(send_date.getFullYear()+2));
+      unlock_date = new Date(unlock_date.setYear(unlock_date.getFullYear()+2));
       break;
     case 5: // 5 years
-      send_date = new Date(send_date.setYear(send_date.getFullYear()+5));
+      unlock_date = new Date(unlock_date.setYear(unlock_date.getFullYear()+5));
       break;
     default:
       res.status(400).send("invalid duration");
@@ -109,8 +110,8 @@ router.post('/', connect, async function(req, res, next) {
     _id: id,
     text, 
     email, 
-    create_date: new Date(), 
-    send_date, 
+    create_date: getCurrentTime(), 
+    unlock_date, 
     ip: req.headers['x-forwarded-for'] || req.socket.remoteAddress 
   })
     .then(() => {
