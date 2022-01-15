@@ -59,6 +59,7 @@ router.get('/:id', connect, async function(req, res, next) {
     return;
   }
 
+  // fall through to 404
   next();
 });
 
@@ -82,27 +83,10 @@ router.post('/', connect, async function(req, res, next) {
     return;
   }
 
-  // Must match with client display
-  var unlock_date = getDayStartTime();
-  switch (duration) {
-    case 1: // 1 month
-      unlock_date = new Date(unlock_date.setMonth(unlock_date.getMonth()+1));
-      break;
-    case 2: // 6 months
-      unlock_date = new Date(unlock_date.setMonth(unlock_date.getMonth()+6));
-      break;
-    case 3: // 1 year
-      unlock_date = new Date(unlock_date.setYear(unlock_date.getFullYear()+1));
-      break;
-    case 4: // 2 years
-      unlock_date = new Date(unlock_date.setYear(unlock_date.getFullYear()+2));
-      break;
-    case 5: // 5 years
-      unlock_date = new Date(unlock_date.setYear(unlock_date.getFullYear()+5));
-      break;
-    default:
-      res.status(400).send("invalid duration");
-      return;
+  var unlock_date = getUnlockDate(duration);
+  if (unlock_date == null) {
+    res.status(400).send("invalid duration");
+    return;
   }
 
   var id = crypto.randomBytes(20).toString('hex');
@@ -124,7 +108,25 @@ router.post('/', connect, async function(req, res, next) {
       console.error(err);
       res.sendStatus(500);
     });
-  
 });
+
+function getUnlockDate(durationOption) {
+  // Must match with client display
+  var today = getDayStartTime();
+  switch (durationOption) {
+    case 1: // 1 month
+      return new Date(today.setMonth(today.getMonth()+1));
+    case 2: // 6 months
+      return new Date(today.setMonth(today.getMonth()+6));
+    case 3: // 1 year
+      return new Date(today.setYear(today.getFullYear()+1));
+    case 4: // 2 years
+      return new Date(today.setYear(today.getFullYear()+2));
+    case 5: // 5 years
+      return new Date(today.setYear(today.getFullYear()+5));
+    default:
+      return null;
+  }
+}
 
 module.exports = router;
